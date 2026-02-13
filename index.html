@@ -1,0 +1,2351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>FRIENDSHIP PROTOCOL 1.0</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;500;700&family=Caveat:wght@600&display=swap"
+        rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --cyan: #00f5ff;
+            --cyan2: #00b8c4;
+            --green: #00ff88;
+            --red: #ff3366;
+            --gold: #ffd700;
+            --pink: #ff6eb4;
+            --bg: #000;
+            --dim: #2a3a3a;
+            --mid: #3a5a5a;
+            --mono: 'Share Tech Mono', monospace;
+            --display: 'Rajdhani', sans-serif;
+            --hand: 'Caveat', cursive;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            color: var(--cyan);
+            font-family: var(--mono);
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: none;
+            user-select: none;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 9998;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 245, 255, 0.015) 2px, rgba(0, 245, 255, 0.015) 4px);
+            pointer-events: none;
+        }
+
+        .screen {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .screen.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* IDLE */
+        #s-idle {
+            gap: 0;
+        }
+
+        .top-bar {
+            position: absolute;
+            top: 36px;
+            left: 0;
+            right: 0;
+            text-align: center;
+        }
+
+        .sys-line {
+            font-size: 11px;
+            letter-spacing: .2em;
+            color: var(--mid);
+            text-transform: uppercase;
+            line-height: 2;
+        }
+
+        .sys-line.hi {
+            color: var(--cyan);
+        }
+
+        .target-line {
+            font-size: 10px;
+            letter-spacing: .25em;
+            color: #1e4040;
+            margin-top: 2px;
+            display: none;
+        }
+
+        .target-line span {
+            color: var(--cyan2);
+        }
+
+        .sensor-wrap {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .outer-ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 2px solid var(--cyan);
+            animation: idleGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes idleGlow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 10px var(--cyan), 0 0 25px rgba(0, 245, 255, .2);
+                border-color: rgba(0, 245, 255, .6);
+            }
+
+            50% {
+                box-shadow: 0 0 22px var(--cyan), 0 0 55px rgba(0, 245, 255, .45), 0 0 90px rgba(0, 245, 255, .12);
+                border-color: var(--cyan);
+            }
+        }
+
+        .ticks {
+            position: absolute;
+            inset: -14px;
+            border-radius: 50%;
+        }
+
+        .tick {
+            position: absolute;
+            width: 2px;
+            height: 7px;
+            background: rgba(0, 245, 255, .2);
+            left: 50%;
+            top: 0;
+            transform-origin: 50% 124px;
+        }
+
+        .tick:nth-child(4n) {
+            height: 12px;
+            background: rgba(0, 245, 255, .45);
+        }
+
+        .sensor-face {
+            width: 162px;
+            height: 162px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 38% 33%, rgba(0, 245, 255, .09) 0%, #000 65%);
+            border: 1px solid rgba(0, 245, 255, .18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 6px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .thumb {
+            font-size: 44px;
+            filter: drop-shadow(0 0 8px var(--cyan));
+            line-height: 1;
+        }
+
+        .face-lbl {
+            font-size: 9px;
+            letter-spacing: .3em;
+            color: var(--dim);
+            text-transform: uppercase;
+        }
+
+        .hold-hint {
+            position: absolute;
+            bottom: 52px;
+            font-size: 10px;
+            letter-spacing: .2em;
+            color: var(--dim);
+            text-transform: uppercase;
+            animation: blink 1.6s step-end infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0
+            }
+        }
+
+        /* SCAN */
+        #s-scan {
+            gap: 28px;
+        }
+
+        .scan-title {
+            font-size: 10px;
+            letter-spacing: .3em;
+            color: var(--mid);
+            text-transform: uppercase;
+        }
+
+        .ring-wrap {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .prog-svg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .prog-track {
+            fill: none;
+            stroke: rgba(255, 255, 255, .04);
+            stroke-width: 3;
+        }
+
+        .prog-fill {
+            fill: none;
+            stroke: #fff;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-dasharray: 565.48;
+            stroke-dashoffset: 565.48;
+            transition: stroke-dashoffset .04s linear;
+            filter: drop-shadow(0 0 6px #fff) drop-shadow(0 0 14px rgba(255, 255, 255, .4));
+        }
+
+        .scan-face {
+            width: 164px;
+            height: 164px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, .07) 0%, #000 70%);
+            border: 1px solid rgba(255, 255, 255, .12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 4px;
+            animation: scanPulse .45s ease-in-out infinite;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes scanPulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 14px rgba(255, 255, 255, .15), inset 0 0 14px rgba(255, 255, 255, .04);
+            }
+
+            50% {
+                box-shadow: 0 0 32px rgba(255, 255, 255, .38), inset 0 0 24px rgba(255, 255, 255, .09);
+            }
+        }
+
+        .sweep {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .85), transparent);
+            box-shadow: 0 0 8px #fff;
+            animation: sweep 1.1s ease-in-out infinite;
+        }
+
+        @keyframes sweep {
+            0% {
+                top: 12%;
+                opacity: 0
+            }
+
+            15% {
+                opacity: 1
+            }
+
+            85% {
+                opacity: 1
+            }
+
+            100% {
+                top: 88%;
+                opacity: 0
+            }
+        }
+
+        .scan-num {
+            font-family: var(--display);
+            font-size: 38px;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 18px #fff;
+            line-height: 1;
+        }
+
+        .scan-sub {
+            font-size: 8px;
+            letter-spacing: .3em;
+            color: rgba(255, 255, 255, .35);
+        }
+
+        .logs {
+            width: 100%;
+            max-width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            min-height: 88px;
+        }
+
+        .log {
+            font-size: 11px;
+            letter-spacing: .1em;
+            color: rgba(255, 255, 255, .4);
+            opacity: 0;
+            transform: translateY(5px);
+            transition: opacity .35s, transform .35s;
+        }
+
+        .log.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .log.now {
+            color: #fff;
+        }
+
+        .log .ts {
+            color: rgba(255, 255, 255, .25);
+            margin-right: 6px;
+        }
+
+        /* ERROR */
+        #s-error {
+            gap: 22px;
+        }
+
+        .err-ring {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 2px solid var(--red);
+            box-shadow: 0 0 22px var(--red), 0 0 50px rgba(255, 51, 102, .3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            animation: shake .5s ease 1;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            20% {
+                transform: translateX(-9px)
+            }
+
+            40% {
+                transform: translateX(9px)
+            }
+
+            60% {
+                transform: translateX(-5px)
+            }
+
+            80% {
+                transform: translateX(5px)
+            }
+        }
+
+        .err-txt {
+            text-align: center;
+            font-size: 12px;
+            letter-spacing: .18em;
+            color: var(--red);
+            text-transform: uppercase;
+            line-height: 2;
+        }
+
+        .err-sub {
+            font-size: 9px;
+            color: #552233;
+            letter-spacing: .15em;
+            margin-top: 3px;
+        }
+
+        .retry-btn {
+            padding: 12px 30px;
+            border: 1px solid rgba(255, 51, 102, .4);
+            background: transparent;
+            color: var(--red);
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all .2s;
+        }
+
+        .retry-btn:active {
+            background: rgba(255, 51, 102, .1);
+            transform: scale(.97);
+        }
+
+        /* GLITCH */
+        #s-glitch {
+            background: #000;
+            gap: 0;
+        }
+
+        .glitch-wrap {
+            position: relative;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .fake-terminal {
+            font-size: 11px;
+            letter-spacing: .15em;
+            color: rgba(0, 245, 255, .4);
+            line-height: 2.2;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .fake-terminal .corrupt {
+            display: inline-block;
+            animation: corrupt .1s step-end infinite;
+        }
+
+        @keyframes corrupt {
+            0% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0
+            }
+
+            100% {
+                opacity: 1
+            }
+        }
+
+        .real-msg {
+            font-family: var(--hand);
+            font-size: 26px;
+            color: #fff;
+            line-height: 1.5;
+            opacity: 0;
+            transform: scale(.95);
+            transition: opacity .4s ease, transform .4s ease;
+            text-shadow: 0 0 20px rgba(255, 255, 255, .3);
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .real-msg.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .real-msg .hi {
+            color: var(--pink);
+            text-shadow: 0 0 12px var(--pink);
+        }
+
+        .glitch-bar {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--pink), var(--cyan), transparent);
+            opacity: 0;
+            animation: glitchBar .8s ease forwards;
+        }
+
+        @keyframes glitchBar {
+            0% {
+                opacity: 0;
+                top: 0%
+            }
+
+            30% {
+                opacity: 1
+            }
+
+            70% {
+                opacity: 1
+            }
+
+            100% {
+                opacity: 0;
+                top: 100%
+            }
+        }
+
+        /* STATS */
+        #s-stats {
+            gap: 0;
+            padding: 20px;
+        }
+
+        .stats-card {
+            width: 100%;
+            max-width: 320px;
+            border: 1px solid rgba(0, 245, 255, .25);
+            background: linear-gradient(155deg, rgba(0, 245, 255, .04) 0%, rgba(0, 0, 0, .95) 60%);
+            padding: 24px 22px 20px;
+            position: relative;
+            opacity: 0;
+            transform: translateY(18px);
+            transition: opacity .5s ease, transform .5s ease;
+        }
+
+        .stats-card.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .cc {
+            position: absolute;
+            width: 13px;
+            height: 13px;
+        }
+
+        .cc.tl {
+            top: -1px;
+            left: -1px;
+            border-top: 2px solid var(--cyan);
+            border-left: 2px solid var(--cyan);
+        }
+
+        .cc.tr {
+            top: -1px;
+            right: -1px;
+            border-top: 2px solid var(--cyan);
+            border-right: 2px solid var(--cyan);
+        }
+
+        .cc.bl {
+            bottom: -1px;
+            left: -1px;
+            border-bottom: 2px solid var(--cyan);
+            border-left: 2px solid var(--cyan);
+        }
+
+        .cc.br {
+            bottom: -1px;
+            right: -1px;
+            border-bottom: 2px solid var(--cyan);
+            border-right: 2px solid var(--cyan);
+        }
+
+        .card-eyebrow {
+            font-size: 9px;
+            letter-spacing: .3em;
+            color: var(--mid);
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .card-name {
+            font-family: var(--display);
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: .04em;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .card-tagline {
+            font-size: 10px;
+            letter-spacing: .12em;
+            color: rgba(0, 245, 255, .5);
+            margin-bottom: 18px;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0, 245, 255, .3), transparent);
+            margin-bottom: 18px;
+        }
+
+        .stat-row {
+            margin-bottom: 13px;
+        }
+
+        .stat-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            letter-spacing: .15em;
+            color: rgba(255, 255, 255, .5);
+            text-transform: uppercase;
+        }
+
+        .stat-val {
+            font-size: 11px;
+            font-weight: bold;
+            font-family: var(--display);
+            letter-spacing: .05em;
+        }
+
+        .stat-bar-bg {
+            height: 4px;
+            background: rgba(255, 255, 255, .05);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .stat-bar-fill {
+            height: 100%;
+            border-radius: 99px;
+            width: 0%;
+            transition: width .9s cubic-bezier(.22, 1, .36, 1);
+        }
+
+        .verdict {
+            margin-top: 18px;
+            padding: 14px 16px;
+            background: rgba(255, 110, 180, .07);
+            border: 1px solid rgba(255, 110, 180, .25);
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            opacity: 0;
+            transition: opacity .5s ease .8s;
+        }
+
+        .verdict.show {
+            opacity: 1;
+        }
+
+        .verdict-icon {
+            font-size: 26px;
+            line-height: 1;
+        }
+
+        .verdict-text {
+            flex: 1;
+        }
+
+        .verdict-label {
+            font-size: 9px;
+            letter-spacing: .25em;
+            color: rgba(255, 110, 180, .5);
+            text-transform: uppercase;
+            margin-bottom: 3px;
+        }
+
+        .verdict-msg {
+            font-size: 12px;
+            letter-spacing: .08em;
+            color: rgba(255, 255, 255, .8);
+            line-height: 1.5;
+        }
+
+        .next-btn {
+            margin-top: 18px;
+            width: 100%;
+            padding: 14px;
+            background: rgba(0, 245, 255, .06);
+            border: 1px solid rgba(0, 245, 255, .3);
+            color: var(--cyan);
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 2px;
+            opacity: 0;
+            transition: opacity .5s ease 1.2s, background .2s, transform .1s;
+        }
+
+        .next-btn.show {
+            opacity: 1;
+        }
+
+        .next-btn:active {
+            background: rgba(0, 245, 255, .15);
+            transform: scale(.98);
+        }
+
+        /* DECISION */
+        #s-decision {
+            gap: 26px;
+        }
+
+        .decision-card {
+            width: 100%;
+            max-width: 300px;
+            border: 1px solid rgba(0, 245, 255, .2);
+            background: linear-gradient(160deg, rgba(0, 245, 255, .03) 0%, #000 60%);
+            padding: 26px 22px;
+            position: relative;
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity .5s, transform .5s;
+        }
+
+        .decision-card.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .dc-title {
+            font-family: var(--display);
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 8px;
+            letter-spacing: .04em;
+        }
+
+        .dc-sub {
+            font-size: 11px;
+            letter-spacing: .1em;
+            color: rgba(255, 255, 255, .4);
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+
+        .dc-sub span {
+            color: var(--cyan);
+        }
+
+        .dc-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0, 245, 255, .25), transparent);
+            margin-bottom: 20px;
+        }
+
+        .dc-q {
+            font-size: 12px;
+            letter-spacing: .08em;
+            color: rgba(255, 255, 255, .65);
+            line-height: 1.8;
+            margin-bottom: 22px;
+        }
+
+        .dc-q strong {
+            color: #fff;
+        }
+
+        .dc-q .sender {
+            color: var(--cyan);
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn-yes {
+            padding: 16px 8px;
+            background: rgba(0, 255, 136, .08);
+            border: 1px solid rgba(0, 255, 136, .45);
+            color: var(--green);
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 2px;
+            box-shadow: 0 0 10px rgba(0, 255, 136, .1);
+            transition: all .15s;
+        }
+
+        .btn-yes:active {
+            background: rgba(0, 255, 136, .18);
+            transform: scale(.97);
+        }
+
+        .btn-no-static {
+            padding: 16px 8px;
+            background: rgba(255, 51, 102, .06);
+            border: 1px solid rgba(255, 51, 102, .35);
+            color: var(--red);
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all .15s;
+        }
+
+        .btn-no-float {
+            position: fixed;
+            z-index: 300;
+            padding: 14px 20px;
+            background: rgba(255, 51, 102, .06);
+            border: 1px solid rgba(255, 51, 102, .35);
+            color: var(--red);
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 2px;
+            white-space: nowrap;
+            display: none;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 72px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 51, 102, .12);
+            border: 1px solid rgba(255, 51, 102, .35);
+            color: var(--red);
+            font-size: 10px;
+            letter-spacing: .18em;
+            padding: 8px 18px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity .2s;
+            pointer-events: none;
+            z-index: 400;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* Reaction text & escape counter */
+        .dc-reaction {
+            font-family: var(--hand);
+            font-size: 18px;
+            color: var(--pink);
+            text-shadow: 0 0 10px rgba(255, 110, 180, .3);
+            text-align: center;
+            min-height: 28px;
+            line-height: 1.4;
+            margin-top: 14px;
+            opacity: 0;
+            transform: translateY(6px);
+            transition: opacity .3s ease, transform .3s ease;
+        }
+
+        .dc-reaction.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .escape-counter {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+            opacity: 0;
+            transition: opacity .3s ease;
+        }
+
+        .escape-counter.show {
+            opacity: 1;
+        }
+
+        .escape-counter-label {
+            font-size: 9px;
+            letter-spacing: .2em;
+            color: rgba(255, 51, 102, .5);
+            text-transform: uppercase;
+        }
+
+        .escape-counter-val {
+            font-family: var(--display);
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--red);
+            text-shadow: 0 0 10px rgba(255, 51, 102, .4);
+            min-width: 28px;
+            text-align: center;
+        }
+
+        @keyframes counterPop {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.5);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .escape-counter-val.pop {
+            animation: counterPop .25s ease;
+        }
+
+        /* SUCCESS */
+        #s-success {
+            gap: 10px;
+            overflow-y: auto;
+            padding: 12px 24px;
+        }
+
+        #confetti-canvas {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .cert {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 310px;
+            background: linear-gradient(160deg, #0a0a0a, #050505);
+            border: 1px solid rgba(255, 215, 0, .3);
+            padding: 14px 16px 12px;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(255, 215, 0, .1), 0 0 80px rgba(255, 215, 0, .05);
+            opacity: 0;
+            transform: scale(.9) translateY(20px);
+            transition: opacity .6s ease, transform .6s cubic-bezier(.22, 1, .36, 1);
+        }
+
+        .cert.show {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+
+        .ss-box-outer {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 310px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity .5s ease 1s, transform .5s ease 1s;
+        }
+
+        .ss-box-outer.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .gc {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+        }
+
+        .gc.tl {
+            top: -1px;
+            left: -1px;
+            border-top: 2px solid var(--gold);
+            border-left: 2px solid var(--gold);
+        }
+
+        .gc.tr {
+            top: -1px;
+            right: -1px;
+            border-top: 2px solid var(--gold);
+            border-right: 2px solid var(--gold);
+        }
+
+        .gc.bl {
+            bottom: -1px;
+            left: -1px;
+            border-bottom: 2px solid var(--gold);
+            border-left: 2px solid var(--gold);
+        }
+
+        .gc.br {
+            bottom: -1px;
+            right: -1px;
+            border-bottom: 2px solid var(--gold);
+            border-right: 2px solid var(--gold);
+        }
+
+        .cert-eyebrow {
+            font-size: 8px;
+            letter-spacing: .35em;
+            color: rgba(255, 215, 0, .4);
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .cert-emoji {
+            font-size: 30px;
+            line-height: 1;
+            margin-bottom: 5px;
+            display: block;
+            animation: bounce 1.5s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0)
+            }
+
+            50% {
+                transform: translateY(-6px)
+            }
+        }
+
+        .cert-title {
+            font-family: var(--display);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gold);
+            text-shadow: 0 0 16px rgba(255, 215, 0, .4);
+            letter-spacing: .06em;
+            line-height: 1.2;
+            margin-bottom: 4px;
+        }
+
+        .cert-divider-gold {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            margin: 8px 0;
+        }
+
+        .cert-body {
+            font-size: 10px;
+            letter-spacing: .08em;
+            color: rgba(255, 255, 255, .55);
+            line-height: 1.7;
+            margin-bottom: 6px;
+        }
+
+        .cert-body span {
+            color: #fff;
+        }
+
+        .cert-body .pink {
+            color: var(--pink);
+        }
+
+        .cert-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .cstat {
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid rgba(255, 255, 255, .07);
+            padding: 5px 4px;
+            border-radius: 2px;
+            text-align: center;
+        }
+
+        .cstat-val {
+            font-family: var(--display);
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--gold);
+            text-shadow: 0 0 8px rgba(255, 215, 0, .3);
+        }
+
+        .cstat-lbl {
+            font-size: 7px;
+            letter-spacing: .2em;
+            color: rgba(255, 255, 255, .3);
+            text-transform: uppercase;
+            margin-top: 1px;
+        }
+
+        .cert-final {
+            font-family: var(--hand);
+            font-size: 17px;
+            color: #fff;
+            line-height: 1.4;
+            text-shadow: 0 0 12px rgba(255, 255, 255, .2);
+            margin-bottom: 6px;
+        }
+
+        .cert-final .pink {
+            color: var(--pink);
+            text-shadow: 0 0 10px var(--pink);
+        }
+
+        .ss-box {
+            margin-top: 0;
+            padding: 10px 10px;
+            background: rgba(255, 110, 180, .08);
+            border: 1px solid rgba(255, 110, 180, .3);
+            border-radius: 2px;
+        }
+
+        .ss-title {
+            font-size: 9px;
+            letter-spacing: .2em;
+            color: var(--pink);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .ss-msg {
+            font-family: var(--hand);
+            font-size: 16px;
+            color: rgba(255, 255, 255, .8);
+            line-height: 1.5;
+        }
+
+        .ss-msg strong {
+            color: #fff;
+        }
+
+        .ss-hint {
+            font-size: 8px;
+            letter-spacing: .13em;
+            color: rgba(255, 110, 180, .45);
+            margin-top: 4px;
+            text-transform: uppercase;
+            line-height: 1.5;
+        }
+
+        .cert-id {
+            font-size: 7px;
+            letter-spacing: .2em;
+            color: rgba(255, 215, 0, .2);
+            margin-top: 6px;
+        }
+
+        /* ===== FEATURE E: SCREEN SHAKE + FLICKER ===== */
+        @keyframes screenShake {
+
+            0%,
+            100% {
+                transform: translate(0);
+            }
+
+            10% {
+                transform: translate(-4px, 2px);
+            }
+
+            20% {
+                transform: translate(4px, -2px);
+            }
+
+            30% {
+                transform: translate(-3px, -1px);
+            }
+
+            40% {
+                transform: translate(3px, 1px);
+            }
+
+            50% {
+                transform: translate(-2px, 3px);
+            }
+
+            60% {
+                transform: translate(2px, -3px);
+            }
+
+            70% {
+                transform: translate(-1px, 2px);
+            }
+
+            80% {
+                transform: translate(1px, -1px);
+            }
+
+            90% {
+                transform: translate(-2px, 1px);
+            }
+        }
+
+        #s-glitch.shaking {
+            animation: screenShake .3s ease;
+        }
+
+        .glitch-flash {
+            position: fixed;
+            inset: 0;
+            background: #fff;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            animation: glitchFlash .15s ease;
+        }
+
+        @keyframes glitchFlash {
+            0% {
+                opacity: 0;
+            }
+
+            30% {
+                opacity: .7;
+            }
+
+            100% {
+                opacity: 0;
+            }
+        }
+
+        /* ===== FEATURE 3: QUIZ SCREEN ===== */
+        #s-quiz {
+            gap: 0;
+            padding: 20px;
+        }
+
+        .quiz-card {
+            width: 100%;
+            max-width: 320px;
+            border: 1px solid rgba(0, 245, 255, .25);
+            background: linear-gradient(155deg, rgba(0, 245, 255, .04) 0%, rgba(0, 0, 0, .95) 60%);
+            padding: 20px 18px;
+            position: relative;
+            opacity: 0;
+            transform: translateY(18px);
+            transition: opacity .5s ease, transform .5s ease;
+        }
+
+        .quiz-card.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .quiz-eyebrow {
+            font-size: 9px;
+            letter-spacing: .3em;
+            color: var(--mid);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .quiz-title {
+            font-family: var(--display);
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: .04em;
+            margin-bottom: 4px;
+        }
+
+        .quiz-subtitle {
+            font-family: var(--hand);
+            font-size: 16px;
+            color: var(--pink);
+            margin-bottom: 14px;
+        }
+
+        .quiz-progress {
+            height: 3px;
+            background: rgba(255, 255, 255, .06);
+            border-radius: 99px;
+            margin-bottom: 18px;
+            overflow: hidden;
+        }
+
+        .quiz-progress-fill {
+            height: 100%;
+            background: var(--cyan);
+            border-radius: 99px;
+            transition: width .4s cubic-bezier(.22, 1, .36, 1);
+            box-shadow: 0 0 8px var(--cyan);
+        }
+
+        .quiz-q-wrap {
+            min-height: 160px;
+            position: relative;
+        }
+
+        .quiz-question {
+            opacity: 0;
+            transform: translateX(20px);
+            transition: opacity .3s ease, transform .3s ease;
+            position: absolute;
+            width: 100%;
+        }
+
+        .quiz-question.active {
+            opacity: 1;
+            transform: translateX(0);
+            position: relative;
+        }
+
+        .quiz-question.exit {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        .q-label {
+            font-size: 12px;
+            letter-spacing: .08em;
+            color: rgba(255, 255, 255, .7);
+            margin-bottom: 14px;
+            line-height: 1.6;
+        }
+
+        .q-label strong {
+            color: #fff;
+        }
+
+        .q-slider-wrap {
+            padding: 0 4px;
+        }
+
+        .q-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, .08);
+            border-radius: 99px;
+            outline: none;
+            margin-bottom: 6px;
+        }
+
+        .q-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            background: var(--cyan);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--cyan), 0 0 20px rgba(0, 245, 255, .3);
+        }
+
+        .q-slider-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            color: rgba(255, 255, 255, .3);
+            letter-spacing: .1em;
+            margin-bottom: 10px;
+        }
+
+        .q-slider-val {
+            text-align: center;
+            font-family: var(--display);
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--cyan);
+            text-shadow: 0 0 12px rgba(0, 245, 255, .4);
+            margin-bottom: 8px;
+        }
+
+        .q-choices {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .q-choice {
+            flex: 1;
+            min-width: 70px;
+            padding: 12px 8px;
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid rgba(255, 255, 255, .12);
+            color: rgba(255, 255, 255, .6);
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: .15em;
+            text-transform: uppercase;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all .2s;
+        }
+
+        .q-choice:active,
+        .q-choice.selected {
+            background: rgba(0, 245, 255, .1);
+            border-color: var(--cyan);
+            color: var(--cyan);
+            box-shadow: 0 0 10px rgba(0, 245, 255, .2);
+        }
+
+        .q-next-btn {
+            margin-top: 12px;
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 245, 255, .06);
+            border: 1px solid rgba(0, 245, 255, .3);
+            color: var(--cyan);
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all .2s;
+            opacity: 0;
+        }
+
+        .q-next-btn.show {
+            opacity: 1;
+        }
+
+        .q-next-btn:active {
+            background: rgba(0, 245, 255, .15);
+            transform: scale(.98);
+        }
+
+        /* ===== FEATURE A: EMOJI REACTIONS ===== */
+        .emoji-float {
+            position: fixed;
+            font-size: 36px;
+            z-index: 500;
+            pointer-events: none;
+            animation: emojiPop .7s ease forwards;
+        }
+
+        @keyframes emojiPop {
+            0% {
+                transform: scale(0) translateY(0);
+                opacity: 0;
+            }
+
+            20% {
+                transform: scale(1.3) translateY(-10px);
+                opacity: 1;
+            }
+
+            40% {
+                transform: scale(1) translateY(-20px);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(.8) translateY(-80px);
+                opacity: 0;
+            }
+        }
+
+        /* ===== FEATURE 2: PARTICLE TRAIL ===== */
+        .particle {
+            position: fixed;
+            z-index: 350;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleBurst .5s ease forwards;
+        }
+
+        @keyframes particleBurst {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(var(--dx), var(--dy)) scale(0);
+                opacity: 0;
+            }
+        }
+
+        /* ===== FEATURE F: STAMP ANIMATION ===== */
+        .cert-stamp {
+            position: absolute;
+            top: 55px;
+            left: 10px;
+            transform: scale(3) rotate(-15deg);
+            font-family: var(--display);
+            font-size: 16px;
+            font-weight: 700;
+            color: rgba(255, 215, 0, .7);
+            letter-spacing: .08em;
+            border: 2px solid rgba(255, 215, 0, .5);
+            border-radius: 3px;
+            padding: 4px 10px;
+            text-transform: uppercase;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 5;
+            text-shadow: 0 0 8px rgba(255, 215, 0, .3);
+        }
+
+        .cert-stamp.slam {
+            animation: stampSlam .4s cubic-bezier(.17, .67, .35, 1.5) forwards;
+        }
+
+        @keyframes stampSlam {
+            0% {
+                opacity: 0;
+                transform: scale(3) rotate(-15deg);
+            }
+
+            60% {
+                opacity: 1;
+                transform: scale(.95) rotate(-8deg);
+            }
+
+            80% {
+                transform: scale(1.05) rotate(-8deg);
+            }
+
+            100% {
+                opacity: .75;
+                transform: scale(1) rotate(-8deg);
+            }
+        }
+
+        /* ===== FEATURE 7: SEND TO FRIEND ===== */
+        .send-friend-btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+            background: rgba(0, 245, 255, .06);
+            border: 1px solid rgba(0, 245, 255, .3);
+            color: var(--cyan);
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: .15em;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all .2s;
+        }
+
+        .send-friend-btn:active {
+            background: rgba(0, 245, 255, .15);
+            transform: scale(.98);
+        }
+
+        .copied-toast {
+            font-size: 9px;
+            letter-spacing: .2em;
+            color: var(--green);
+            text-align: center;
+            margin-top: 6px;
+            opacity: 0;
+            transition: opacity .3s;
+            text-transform: uppercase;
+        }
+
+        .copied-toast.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- S1: IDLE -->
+    <div id="s-idle" class="screen active">
+        <div class="top-bar">
+            <p class="sys-line hi">[ SYSTEM ] &nbsp;READY TO SCAN</p>
+            <p class="target-line" id="target-line">TARGET: <span id="target-display"></span></p>
+        </div>
+        <div class="sensor-wrap">
+            <div class="outer-ring"></div>
+            <div class="ticks" id="ticks"></div>
+            <div class="sensor-face" id="sensor-face">
+                <div class="thumb">👍</div>
+                <div class="face-lbl">Biometric</div>
+            </div>
+        </div>
+        <p class="hold-hint">▼ press & hold to scan ▼</p>
+    </div>
+
+    <!-- S2: SCANNING -->
+    <div id="s-scan" class="screen">
+        <p class="scan-title">[ biometric scan active ]</p>
+        <div class="ring-wrap">
+            <svg class="prog-svg" viewBox="0 0 200 200">
+                <circle class="prog-track" cx="100" cy="100" r="90" />
+                <circle class="prog-fill" id="prog-arc" cx="100" cy="100" r="90" />
+            </svg>
+            <div class="scan-face">
+                <div class="sweep"></div>
+                <div class="scan-num" id="scan-num">0%</div>
+                <div class="scan-sub">SCANNING</div>
+            </div>
+        </div>
+        <div class="logs">
+            <div class="log" id="l0"><span class="ts">[0.5s]</span> ACCESSING NEURAL SIGNATURE...</div>
+            <div class="log" id="l1"><span class="ts">[1.0s]</span> ANALYZING HUMOR FREQUENCY...</div>
+            <div class="log" id="l2"><span class="ts">[1.5s]</span> VIBE SYNC: 99.8%...</div>
+            <div class="log" id="l3"><span class="ts">[2.0s]</span> SCAN COMPLETE.</div>
+        </div>
+    </div>
+
+    <!-- S3: ERROR -->
+    <div id="s-error" class="screen">
+        <div class="err-ring">⚠</div>
+        <div class="err-txt">
+            [ERROR] BIOMETRIC INTERRUPTED
+            <div class="err-sub">Signal lost — please retry</div>
+        </div>
+        <button class="retry-btn" id="retry-btn">↺ &nbsp;RETRY SCAN</button>
+    </div>
+
+    <!-- S4: GLITCH -->
+    <div id="s-glitch" class="screen">
+        <div class="glitch-bar"></div>
+        <div class="glitch-wrap">
+            <div class="fake-terminal" id="fake-term"></div>
+            <div class="real-msg" id="real-msg">
+                <span class="hi">okay real talk —</span><br>
+                this whole thing was just<br>
+                an excuse to say hey,<br>
+                glad we're friends 😄
+            </div>
+        </div>
+    </div>
+
+    <!-- S4.5: QUIZ -->
+    <div id="s-quiz" class="screen">
+        <div class="quiz-card" id="quiz-card">
+            <div class="cc tl"></div>
+            <div class="cc tr"></div>
+            <div class="cc bl"></div>
+            <div class="cc br"></div>
+            <p class="quiz-eyebrow">◉ &nbsp;Neural Calibration</p>
+            <h2 class="quiz-title">QUICK SCAN</h2>
+            <p class="quiz-subtitle">Answer honestly... or don't 😄</p>
+            <div class="quiz-progress">
+                <div class="quiz-progress-fill" id="quiz-prog" style="width:0%"></div>
+            </div>
+            <div class="quiz-q-wrap" id="quiz-q-wrap"></div>
+            <button class="q-next-btn" id="q-next-btn">NEXT →</button>
+        </div>
+    </div>
+
+    <!-- S5: STATS -->
+    <div id="s-stats" class="screen">
+        <div class="stats-card" id="stats-card">
+            <div class="cc tl"></div>
+            <div class="cc tr"></div>
+            <div class="cc bl"></div>
+            <div class="cc br"></div>
+            <p class="card-eyebrow">◉ &nbsp;Scan Results &nbsp;·&nbsp; Profile Analysis</p>
+            <h2 class="card-name" id="stats-name">SUBJECT</h2>
+            <p class="card-tagline">Neural signature verified. Results below.</p>
+            <div class="divider"></div>
+            <div id="stat-rows"></div>
+            <div class="verdict" id="verdict">
+                <div class="verdict-icon">🎯</div>
+                <div class="verdict-text">
+                    <div class="verdict-label">System Verdict</div>
+                    <div class="verdict-msg">Dangerously fun to be around.<br>Friendship: <strong
+                            style="color:var(--green)">APPROVED ✓</strong></div>
+                </div>
+            </div>
+            <button class="next-btn" id="next-btn" onclick="goToDecision()">PROCEED → AUTHORIZATION</button>
+        </div>
+    </div>
+
+    <!-- S6: DECISION -->
+    <div id="s-decision" class="screen">
+        <div class="decision-card" id="decision-card">
+            <div class="cc tl"></div>
+            <div class="cc tr"></div>
+            <div class="cc bl"></div>
+            <div class="cc br"></div>
+            <h2 class="dc-title">FRIENDSHIP<br>PROTOCOL 1.0</h2>
+            <!-- FIXED: Vinay is requesting, Durga is deciding -->
+            <p class="dc-sub">Authorization request from <span id="dc-sender">VINAY</span>.<br>Your decision is
+                required.</p>
+            <div class="dc-divider"></div>
+            <p class="dc-q">
+                Do you authorize <strong class="sender" id="dc-sender2">VINAY</strong>
+                full access to your friendship?
+            </p>
+            <!-- FIXED: Both buttons inside card at start -->
+            <div class="btn-grid" id="btn-grid">
+                <button class="btn-yes" id="btn-yes">✓ &nbsp;AUTHORIZE</button>
+                <button class="btn-no-static" id="btn-no-static">✕ &nbsp;DECLINE</button>
+            </div>
+            <div class="dc-reaction" id="dc-reaction"></div>
+            <div class="escape-counter" id="escape-counter">
+                <span class="escape-counter-label">Escape Attempts:</span>
+                <span class="escape-counter-val" id="escape-count">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating NO (escapes on hover) -->
+    <button class="btn-no-float" id="btn-no-float">✕ DECLINE</button>
+    <div class="toast" id="toast"></div>
+
+    <!-- S7: SUCCESS -->
+    <div id="s-success" class="screen">
+        <canvas id="confetti-canvas"></canvas>
+        <div class="cert" id="cert">
+            <div class="cert-stamp" id="cert-stamp">CERTIFIED ✓</div>
+            <div class="gc tl"></div>
+            <div class="gc tr"></div>
+            <div class="gc bl"></div>
+            <div class="gc br"></div>
+            <p class="cert-eyebrow">✦ &nbsp;Official Certificate &nbsp;✦</p>
+            <span class="cert-emoji">🔗</span>
+            <h2 class="cert-title">FRIENDSHIP<br>CERTIFIED</h2>
+            <div class="cert-divider-gold"></div>
+            <p class="cert-body">
+                This certifies that <span id="cert-her">DURGA</span> has officially<br>
+                passed the <span class="pink">vibe check</span>, survived the<br>
+                chaos test, and earned a spot in<br>
+                <span id="cert-his">VINAY</span>'s <span>very exclusive friend list.</span>
+            </p>
+            <div class="cert-stats">
+                <div class="cstat">
+                    <div class="cstat-val">★ 1</div>
+                    <div class="cstat-lbl">Friend Tier</div>
+                </div>
+                <div class="cstat">
+                    <div class="cstat-val">∞</div>
+                    <div class="cstat-lbl">Access Level</div>
+                </div>
+                <div class="cstat">
+                    <div class="cstat-val" style="font-size:16px">💯</div>
+                    <div class="cstat-lbl">Vibe Score</div>
+                </div>
+                <div class="cstat">
+                    <div class="cstat-val" style="font-size:16px">✓</div>
+                    <div class="cstat-lbl">Chaos: OK</div>
+                </div>
+            </div>
+            <div class="cert-divider-gold"></div>
+            <p class="cert-final">
+                Congrats. You're stuck<br>with <span id="cert-his2">VINAY</span> now.<br>
+                <span class="pink">Deal with it. 😄</span>
+            </p>
+            <p class="cert-id">CERT-ID: FP-<span id="cert-id-val"></span> &nbsp;|&nbsp; STATUS: AWAITING CONFIRMATION
+            </p>
+        </div>
+        <!-- SCREENSHOT PROMPT (outside cert so it doesn't cause scrolling) -->
+        <div class="ss-box-outer" id="ss-box-outer">
+            <div class="ss-box">
+                <p class="ss-title">📸 &nbsp;Final Step — Action Required</p>
+                <p class="ss-msg">
+                    Take a screenshot of the
+                    certificate &amp; send it to<br>
+                    <strong id="ss-sender">Vinay</strong> for official confirmation!
+                </p>
+                <p class="ss-hint">
+                    ⚠ Friendship not officially active<br>
+                    until screenshot is received 😄
+                </p>
+            </div>
+            <!-- Send to friend -->
+            <button class="send-friend-btn" id="send-friend-btn">🔗 &nbsp;SEND ONE BACK</button>
+            <p class="copied-toast" id="copied-toast">✓ Link copied!</p>
+        </div>
+    </div>
+
+    <script>
+        (() => {
+            'use strict';
+
+            /* URL params: ?n=Durga&from=Vinay */
+            const p = new URLSearchParams(location.search);
+            const herName = (p.get('n') || p.get('name') || 'Durga').trim();
+            const senderName = (p.get('from') || 'Vinay').trim();
+            const HER = herName.toUpperCase();
+            const SENDER = senderName.toUpperCase();
+
+            /* Inject names */
+            document.getElementById('target-line').style.display = 'block';
+            document.getElementById('target-display').textContent = HER;
+            document.getElementById('stats-name').textContent = HER;
+            document.getElementById('dc-sender').textContent = SENDER;
+            document.getElementById('dc-sender2').textContent = SENDER;
+            document.getElementById('cert-her').textContent = HER;
+            document.getElementById('cert-his').textContent = SENDER;
+            document.getElementById('cert-his2').textContent = SENDER;
+            document.getElementById('ss-sender').textContent = senderName;
+            /* Cert ID set initially as random; overwritten after quiz with encoded answers */
+            document.getElementById('cert-id-val').textContent = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+            /* Ticks */
+            const tickEl = document.getElementById('ticks');
+            for (let i = 0; i < 36; i++) {
+                const t = document.createElement('div');
+                t.className = 'tick';
+                t.style.transform = `rotate(${i * 10}deg)`;
+                tickEl.appendChild(t);
+            }
+
+            /* ===== FEATURE 1: SOUND EFFECTS (Web Audio API) ===== */
+            let audioCtx = null;
+            function initAudio() {
+                if (!audioCtx) {
+                    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { }
+                }
+            }
+            function playTone(freq, dur, type = 'sine', vol = 0.15) {
+                if (!audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + dur);
+            }
+            function playSweep(f1, f2, dur, type = 'sine', vol = 0.12) {
+                if (!audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(f1, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(f2, audioCtx.currentTime + dur);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + dur);
+            }
+            function playNoise(dur, vol = 0.08) {
+                if (!audioCtx) return;
+                const bufSize = audioCtx.sampleRate * dur;
+                const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+                const data = buf.getChannelData(0);
+                for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+                const src = audioCtx.createBufferSource();
+                const gain = audioCtx.createGain();
+                src.buffer = buf;
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                src.connect(gain); gain.connect(audioCtx.destination);
+                src.start();
+            }
+            function playJingle() {
+                if (!audioCtx) return;
+                [523, 659, 784, 1047].forEach((f, i) => {
+                    setTimeout(() => playTone(f, 0.3, 'sine', 0.12), i * 120);
+                });
+            }
+            function sfxScanStart() { playTone(800, 0.06, 'sine', 0.08); }
+            function sfxScanDone() { playSweep(600, 1200, 0.15, 'sine', 0.08); }
+            function sfxError() { playTone(200, 0.2, 'square', 0.06); }
+            function sfxGlitchLine() { playNoise(0.04, 0.03); }
+            function sfxGlitchCorrupt() { playNoise(0.08, 0.06); }
+            function sfxChime() { playTone(880, 0.3, 'sine', 0.07); }
+            function sfxBoing() { playSweep(300, 800, 0.1, 'sine', 0.07); }
+            function sfxSuccess() { playJingle(); }
+            function sfxStamp() { playTone(150, 0.12, 'square', 0.08); }
+
+            /* ===== FEATURE 2: PARTICLE TRAIL ===== */
+            const PCOLORS = ['#ff6eb4', '#00f5ff', '#ff3366', '#ffd700', '#a78bfa'];
+            function spawnParticles(x, y) {
+                for (let i = 0; i < 12; i++) {
+                    const el = document.createElement('div');
+                    el.className = 'particle';
+                    const angle = (Math.PI * 2 / 12) * i + Math.random() * 0.5;
+                    const dist = 30 + Math.random() * 40;
+                    const dx = Math.cos(angle) * dist;
+                    const dy = Math.sin(angle) * dist;
+                    el.style.cssText = `left:${x}px;top:${y}px;width:${4 + Math.random() * 5}px;height:${4 + Math.random() * 5}px;background:${PCOLORS[i % PCOLORS.length]};--dx:${dx}px;--dy:${dy}px;box-shadow:0 0 4px ${PCOLORS[i % PCOLORS.length]};`;
+                    document.body.appendChild(el);
+                    setTimeout(() => el.remove(), 550);
+                }
+            }
+
+            /* ===== FEATURE A: EMOJI REACTIONS ===== */
+            function floatEmoji(emoji) {
+                const el = document.createElement('div');
+                el.className = 'emoji-float';
+                el.textContent = emoji;
+                el.style.left = (window.innerWidth / 2 - 18) + 'px';
+                el.style.top = (window.innerHeight / 2 - 40) + 'px';
+                document.body.appendChild(el);
+                setTimeout(() => el.remove(), 750);
+            }
+            function emojiForVal(v) {
+                if (v <= 3) return ['😐', '😅', '🫠'][Math.floor(Math.random() * 3)];
+                if (v <= 6) return ['😄', '🙂', '✌️'][Math.floor(Math.random() * 3)];
+                return ['🔥', '💥', '⚡', '😎'][Math.floor(Math.random() * 4)];
+            }
+
+            /* Screens */
+            const S = {
+                idle: document.getElementById('s-idle'), scan: document.getElementById('s-scan'),
+                error: document.getElementById('s-error'), glitch: document.getElementById('s-glitch'),
+                quiz: document.getElementById('s-quiz'),
+                stats: document.getElementById('s-stats'), decision: document.getElementById('s-decision'),
+                success: document.getElementById('s-success'),
+            };
+            function show(n) { Object.values(S).forEach(s => s.classList.remove('active')); S[n].classList.add('active'); }
+
+            /* Haptics */
+            function vib(pat) { try { navigator.vibrate && navigator.vibrate(pat); } catch (e) { } }
+
+            /* Scan */
+            const ARC = document.getElementById('prog-arc'), NUM = document.getElementById('scan-num');
+            const CIRC = 565.48, DUR = 2000;
+            let scanStart = null, aborted = false, hapticInt = null, progInt = null, logTimers = [];
+            const LOGS = [{ id: 'l0', t: 500 }, { id: 'l1', t: 1000 }, { id: 'l2', t: 1500 }, { id: 'l3', t: 2000 }];
+
+            function resetLogs() { LOGS.forEach(l => { const el = document.getElementById(l.id); el.classList.remove('show', 'now'); }); }
+            function setProg(pct) { ARC.style.strokeDashoffset = CIRC * (1 - pct / 100); NUM.textContent = Math.round(pct) + '%'; }
+
+            function startScan() {
+                initAudio();
+                aborted = false; scanStart = Date.now();
+                show('scan'); resetLogs(); setProg(0);
+                vib(50); sfxScanStart();
+                hapticInt = setInterval(() => vib(50), 400);
+                progInt = setInterval(() => { setProg(Math.min(((Date.now() - scanStart) / DUR) * 100, 100)); }, 30);
+                LOGS.forEach(l => {
+                    const t = setTimeout(() => {
+                        if (aborted) return;
+                        document.querySelectorAll('.log.now').forEach(el => el.classList.remove('now'));
+                        const el = document.getElementById(l.id); el.classList.add('show', 'now');
+                    }, l.t); logTimers.push(t);
+                });
+                setTimeout(() => {
+                    if (aborted) return;
+                    clearInterval(hapticInt); clearInterval(progInt);
+                    setProg(100); vib(200); sfxScanDone();
+                    setTimeout(() => triggerGlitch(), 300);
+                }, DUR);
+            }
+
+            function abortScan() {
+                if (!scanStart || Date.now() - scanStart >= DUR) return;
+                aborted = true;
+                clearInterval(hapticInt); clearInterval(progInt);
+                logTimers.forEach(clearTimeout); logTimers = []; scanStart = null;
+                vib([100, 50, 100]); sfxError(); show('error');
+            }
+
+            const face = document.getElementById('sensor-face');
+            face.addEventListener('touchstart', e => { e.preventDefault(); startScan(); }, { passive: false });
+            face.addEventListener('touchend', e => { e.preventDefault(); abortScan(); }, { passive: false });
+            face.addEventListener('touchcancel', e => { e.preventDefault(); abortScan(); }, { passive: false });
+            face.addEventListener('mousedown', () => startScan());
+            document.addEventListener('mouseup', () => { if (scanStart) abortScan(); });
+            document.getElementById('retry-btn').addEventListener('click', () => { scanStart = null; show('idle'); });
+
+            /* ===== FEATURE E: SCREEN SHAKE ON GLITCH ===== */
+            function glitchShake() {
+                const el = document.getElementById('s-glitch');
+                el.classList.remove('shaking');
+                void el.offsetWidth;
+                el.classList.add('shaking');
+                setTimeout(() => el.classList.remove('shaking'), 300);
+            }
+            function glitchFlash() {
+                const fl = document.createElement('div');
+                fl.className = 'glitch-flash';
+                document.body.appendChild(fl);
+                setTimeout(() => fl.remove(), 180);
+            }
+
+            /* Glitch */
+            const FAKE = ['COMPILING RESULT DATA...', 'WRITING REPORT TO BUFFER...', 'ENCRYPTING OUTPUT STREAM...', '>>> 0xA4F2 NULL EXCEPTION', '>>> SYSTEM.OVERRIDE DETECTED', '>>> BREAKING PROTOCOL...'];
+            function triggerGlitch() {
+                show('glitch');
+                const term = document.getElementById('fake-term'), real = document.getElementById('real-msg');
+                term.innerHTML = ''; real.classList.remove('show');
+                let i = 0;
+                const iv = setInterval(() => {
+                    const line = document.createElement('div');
+                    if (i >= 3) {
+                        line.innerHTML = `<span class="corrupt">${FAKE[i]}</span>`;
+                        line.style.color = 'rgba(255,110,180,0.7)';
+                        sfxGlitchCorrupt(); glitchShake(); /* FEATURE E */
+                    } else {
+                        line.textContent = FAKE[i];
+                        sfxGlitchLine();
+                    }
+                    term.appendChild(line); i++;
+                    if (i >= FAKE.length) {
+                        clearInterval(iv);
+                        glitchFlash(); /* FEATURE E */
+                        setTimeout(() => {
+                            real.classList.add('show'); sfxChime();
+                            setTimeout(() => triggerQuiz(), 2800); /* → Quiz instead of Stats */
+                        }, 400);
+                    }
+                }, 220);
+            }
+
+            /* ===== FEATURE 3: INTERACTIVE QUIZ ===== */
+            const QUESTIONS = [
+                { label: 'How <strong>chaotic</strong> are you?', type: 'slider', stat: 'Chaos Energy', color: '#ff6eb4', emoji: '⚡' },
+                { label: '<strong>Main character</strong> energy level?', type: 'slider', stat: 'Main Character Vibe', color: '#00f5ff', emoji: '✨' },
+                { label: 'How often do you laugh at <strong>dumb stuff</strong>?', type: 'slider', stat: 'Laugh Frequency', color: '#00ff88', emoji: '😂' },
+                { label: 'Would you trust <strong>' + SENDER + '</strong> with your phone?', type: 'choice', choices: ['Absolutely', 'Maybe...', 'Nope'], values: [95, 75, 55], stat: 'Trust Level', color: '#ffd700', emoji: '🔐' },
+                { label: 'Vibe check — <strong>are we vibing</strong>?', type: 'choice', choices: ['Always 💯', 'Usually', 'Sometimes'], values: [100, 85, 65], stat: 'Vibe Check', color: '#a78bfa', emoji: '💜' },
+            ];
+            let quizAnswers = [];
+            let currentQ = 0;
+
+            function boostVal(raw) { return Math.min(100, Math.round(raw * 0.6 + 40 + Math.random() * 5)); }
+
+            function renderQuestion(idx) {
+                const wrap = document.getElementById('quiz-q-wrap');
+                const q = QUESTIONS[idx];
+                // Remove previous
+                wrap.querySelectorAll('.quiz-question').forEach(el => {
+                    el.classList.remove('active');
+                    el.classList.add('exit');
+                    setTimeout(() => el.remove(), 400);
+                });
+                const div = document.createElement('div');
+                div.className = 'quiz-question';
+                if (q.type === 'slider') {
+                    div.innerHTML = `
+                        <p class="q-label">${q.label}</p>
+                        <div class="q-slider-val" id="q-sv">5</div>
+                        <div class="q-slider-wrap">
+                            <input type="range" min="1" max="10" value="5" class="q-slider" id="q-slider">
+                            <div class="q-slider-labels"><span>1 — Chill</span><span>10 — Maximum</span></div>
+                        </div>`;
+                    setTimeout(() => {
+                        const slider = div.querySelector('#q-slider');
+                        const valEl = div.querySelector('#q-sv');
+                        let emojiDebounce = null;
+                        slider.addEventListener('input', () => {
+                            valEl.textContent = slider.value;
+                            quizAnswers[idx] = boostVal(slider.value * 10);
+                            document.getElementById('q-next-btn').classList.add('show');
+                            clearTimeout(emojiDebounce);
+                            emojiDebounce = setTimeout(() => floatEmoji(emojiForVal(+slider.value)), 150);
+                        });
+                        quizAnswers[idx] = boostVal(50);
+                        document.getElementById('q-next-btn').classList.add('show');
+                    }, 50);
+                } else {
+                    let choicesHtml = q.choices.map((c, i) => `<button class="q-choice" data-val="${q.values[i]}" data-idx="${i}">${c}</button>`).join('');
+                    div.innerHTML = `<p class="q-label">${q.label}</p><div class="q-choices">${choicesHtml}</div>`;
+                    setTimeout(() => {
+                        div.querySelectorAll('.q-choice').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                div.querySelectorAll('.q-choice').forEach(b => b.classList.remove('selected'));
+                                btn.classList.add('selected');
+                                quizAnswers[idx] = +btn.dataset.val;
+                                document.getElementById('q-next-btn').classList.add('show');
+                                const vi = +btn.dataset.idx;
+                                floatEmoji(vi === 0 ? '🔥' : vi === 1 ? '😄' : '😅');
+                                vib(30);
+                            });
+                        });
+                    }, 50);
+                }
+                wrap.appendChild(div);
+                requestAnimationFrame(() => div.classList.add('active'));
+                document.getElementById('quiz-prog').style.width = ((idx + 1) / QUESTIONS.length * 100) + '%';
+                document.getElementById('q-next-btn').classList.remove('show');
+                const btn = document.getElementById('q-next-btn');
+                btn.textContent = idx === QUESTIONS.length - 1 ? 'SEE RESULTS →' : 'NEXT →';
+            }
+
+            function triggerQuiz() {
+                show('quiz');
+                currentQ = 0; quizAnswers = [];
+                setTimeout(() => {
+                    document.getElementById('quiz-card').classList.add('show');
+                    renderQuestion(0);
+                }, 100);
+            }
+
+            document.getElementById('q-next-btn').addEventListener('click', () => {
+                if (quizAnswers[currentQ] === undefined) return;
+                currentQ++;
+                if (currentQ >= QUESTIONS.length) {
+                    encodeCertId(); /* encode answers into cert-ID + URL before stats */
+                    triggerStats();
+                } else {
+                    renderQuestion(currentQ);
+                }
+                vib(30);
+            });
+
+            /* ===== Stats with FEATURE D: COUNT-UP ===== */
+            function animateCountUp(el, target, duration) {
+                const start = performance.now();
+                function tick(now) {
+                    const elapsed = now - start;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    el.textContent = Math.round(eased * target) + '%';
+                    if (progress < 1) requestAnimationFrame(tick);
+                }
+                requestAnimationFrame(tick);
+            }
+
+            function triggerStats() {
+                show('stats');
+                const card = document.getElementById('stats-card'), rows = document.getElementById('stat-rows');
+                rows.innerHTML = '';
+                const STATS = QUESTIONS.map((q, i) => ({
+                    label: q.stat,
+                    val: quizAnswers[i] || boostVal(70),
+                    color: q.color,
+                    emoji: q.emoji,
+                }));
+                setTimeout(() => {
+                    card.classList.add('show');
+                    STATS.forEach((s, i) => {
+                        const row = document.createElement('div'); row.className = 'stat-row';
+                        row.innerHTML = `<div class="stat-top"><span class="stat-label">${s.emoji} ${s.label}</span><span class="stat-val" id="statval${i}" style="color:${s.color}">0%</span></div><div class="stat-bar-bg"><div class="stat-bar-fill" id="bar${i}" style="background:${s.color};box-shadow:0 0 6px ${s.color}"></div></div>`;
+                        rows.appendChild(row);
+                        const delay = 200 + i * 150;
+                        setTimeout(() => {
+                            document.getElementById(`bar${i}`).style.width = s.val + '%';
+                            animateCountUp(document.getElementById(`statval${i}`), s.val, 800);
+                        }, delay);
+                    });
+                    setTimeout(() => {
+                        document.getElementById('verdict').classList.add('show');
+                        document.getElementById('next-btn').classList.add('show');
+                    }, 1100);
+                }, 100);
+            }
+
+            /* After quiz: encode answers into cert-ID + silently update URL */
+            function encodeCertId() {
+                /* Each answer (0-100) becomes 2 hex chars: e.g. 92 → 5C, 100 → 64 */
+                const hex = quizAnswers.map(a => Math.round(a).toString(16).toUpperCase().padStart(2, '0')).join('');
+                const certCode = 'FP-' + hex;
+                document.getElementById('cert-id-val').textContent = certCode;
+                /* Silently update URL so address bar contains answer data */
+                try {
+                    const url = new URL(location.href);
+                    url.searchParams.set('d', btoa(quizAnswers.map(a => Math.round(a)).join('-')));
+                    history.replaceState(null, '', url.toString());
+                } catch (e) { }
+            }
+
+            window.goToDecision = function () {
+                show('decision');
+                setTimeout(() => { document.getElementById('decision-card').classList.add('show'); setupNoBtn(); }, 100);
+            };
+
+            /* Decline button — starts IN card, escapes on proximity */
+            const TOASTS = ['Access Denied.', 'Command Not Recognized.', 'Error: Action Prohibited.', 'Nice try 😏', 'Nope.', 'Not today.', 'Button.exe has left the chat.', 'lol no.', 'Please stop 😂', 'Really? 😄'];
+            let toastT = null, noEscaped = false, escapeAttempts = 0, decisionDone = false;
+
+            /* Progressive reaction messages based on attempt count */
+            const REACTIONS = [
+                { at: 1, msg: 'The button doesn\'t seem to agree... 🤔' },
+                { at: 2, msg: 'It\'s running away from you 😂' },
+                { at: 3, msg: 'Just accept it already!' },
+                { at: 5, msg: 'You\'ve tried 5 times. Take the hint. 😏' },
+                { at: 7, msg: 'Okay this is getting embarrassing...' },
+                { at: 10, msg: 'TEN attempts?! You\'re persistent 💀' },
+                { at: 15, msg: 'At this point, just press Authorize 😭' },
+                { at: 20, msg: 'Legend says the button is still running...🏃' },
+            ];
+
+            function updateReaction() {
+                const el = document.getElementById('dc-reaction');
+                const ctrEl = document.getElementById('escape-counter');
+                const countEl = document.getElementById('escape-count');
+                countEl.textContent = escapeAttempts;
+                ctrEl.classList.add('show');
+                countEl.classList.remove('pop');
+                void countEl.offsetWidth;
+                countEl.classList.add('pop');
+                let msg = '';
+                for (let i = REACTIONS.length - 1; i >= 0; i--) {
+                    if (escapeAttempts >= REACTIONS[i].at) { msg = REACTIONS[i].msg; break; }
+                }
+                if (msg) {
+                    el.classList.remove('show');
+                    setTimeout(() => { el.textContent = msg; el.classList.add('show'); }, 150);
+                }
+            }
+
+            function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 1200); }
+
+            function randPos(w, h) { const m = 28; return { x: m + Math.random() * (window.innerWidth - w - m * 2), y: m + Math.random() * (window.innerHeight - h - m * 2) }; }
+
+            function teleport() {
+                const btn = document.getElementById('btn-no-float');
+                const rect = btn.getBoundingClientRect();
+                const oldX = rect.left + rect.width / 2;
+                const oldY = rect.top + rect.height / 2;
+                spawnParticles(oldX, oldY); /* FEATURE 2 */
+                const pos = randPos(btn.offsetWidth || 110, btn.offsetHeight || 48);
+                btn.style.left = pos.x + 'px'; btn.style.top = pos.y + 'px';
+                escapeAttempts++;
+                vib(30); sfxBoing(); /* FEATURE 1 */
+                showToast(TOASTS[Math.floor(Math.random() * TOASTS.length)]);
+                updateReaction();
+            }
+
+            function escapeButton() {
+                if (noEscaped) return; noEscaped = true;
+                const staticBtn = document.getElementById('btn-no-static');
+                const floatBtn = document.getElementById('btn-no-float');
+                const rect = staticBtn.getBoundingClientRect();
+                staticBtn.style.visibility = 'hidden';
+                floatBtn.style.display = 'block';
+                floatBtn.style.left = rect.left + 'px';
+                floatBtn.style.top = rect.top + 'px';
+                floatBtn.style.width = rect.width + 'px';
+                setTimeout(() => teleport(), 80);
+            }
+
+            function setupNoBtn() {
+                const PROX = 60;
+                function chkStatic(cx, cy) {
+                    if (noEscaped || decisionDone) return;
+                    const r = document.getElementById('btn-no-static').getBoundingClientRect();
+                    if (Math.hypot(cx - (r.left + r.width / 2), cy - (r.top + r.height / 2)) < PROX) escapeButton();
+                }
+                function chkFloat(cx, cy) {
+                    if (!noEscaped || decisionDone) return;
+                    const r = document.getElementById('btn-no-float').getBoundingClientRect();
+                    if (Math.hypot(cx - (r.left + r.width / 2), cy - (r.top + r.height / 2)) < PROX) teleport();
+                }
+                document.addEventListener('mousemove', e => { chkStatic(e.clientX, e.clientY); chkFloat(e.clientX, e.clientY); });
+                document.addEventListener('touchmove', e => { const t = e.touches[0]; chkStatic(t.clientX, t.clientY); chkFloat(t.clientX, t.clientY); }, { passive: true });
+                document.addEventListener('touchstart', e => { const t = e.touches[0]; chkStatic(t.clientX, t.clientY); chkFloat(t.clientX, t.clientY); }, { passive: true });
+            }
+
+            /* Yes → Success */
+            document.getElementById('btn-yes').addEventListener('click', () => {
+                decisionDone = true;
+                vib(800); sfxSuccess();
+                document.getElementById('btn-no-float').style.display = 'none';
+                show('success');
+                setTimeout(() => {
+                    document.getElementById('cert').classList.add('show');
+                    document.getElementById('ss-box-outer').classList.add('show');
+                    startConfetti();
+                    /* FEATURE F: Stamp slam */
+                    setTimeout(() => {
+                        document.getElementById('cert-stamp').classList.add('slam');
+                        sfxStamp(); vib(100);
+                    }, 500);
+                }, 200);
+            });
+
+            /* ===== FEATURE 7: SEND TO FRIEND (with secret answer encoding) ===== */
+            document.getElementById('send-friend-btn').addEventListener('click', () => {
+                const url = new URL(location.href);
+                url.searchParams.set('n', senderName);
+                url.searchParams.set('from', herName);
+                /* Encode quiz answers secretly */
+                const answerCode = quizAnswers.map(a => Math.round(a)).join('-');
+                url.searchParams.set('d', btoa(answerCode));
+                const link = url.toString();
+                const toast = document.getElementById('copied-toast');
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(link).then(() => {
+                        toast.textContent = '✓ Link copied to clipboard!';
+                        toast.classList.add('show');
+                        setTimeout(() => toast.classList.remove('show'), 3000);
+                    });
+                } else {
+                    const inp = document.createElement('input');
+                    inp.value = link; document.body.appendChild(inp);
+                    inp.select(); document.execCommand('copy');
+                    inp.remove();
+                    toast.textContent = '✓ Link copied!';
+                    toast.classList.add('show');
+                    setTimeout(() => toast.classList.remove('show'), 3000);
+                }
+                vib(50);
+            });
+            /* Update send button text */
+            document.getElementById('send-friend-btn').innerHTML = `🔗 &nbsp;SEND ONE BACK TO ${SENDER}`;
+
+            /* ===== SECRET: Reveal Durga's answers when ?reveal=1 is in URL ===== */
+            if (p.get('reveal') === '1' && p.get('d')) {
+                try {
+                    const decoded = atob(p.get('d'));
+                    const answers = decoded.split('-').map(Number);
+                    const labels = ['Chaos Energy', 'Main Character Vibe', 'Laugh Frequency', 'Trust Level', 'Vibe Check'];
+                    let revealHTML = '<div style="position:fixed;bottom:10px;right:10px;z-index:9999;background:rgba(0,0,0,.9);border:1px solid rgba(0,245,255,.3);padding:12px 16px;border-radius:4px;font-size:10px;color:#00f5ff;font-family:monospace;max-width:200px;">';
+                    revealHTML += '<div style="font-size:8px;letter-spacing:.2em;color:rgba(255,255,255,.3);margin-bottom:8px;">🔓 SECRET ANSWERS</div>';
+                    answers.forEach((a, i) => {
+                        if (labels[i]) revealHTML += `<div style="margin:3px 0;">${labels[i]}: <strong style="color:#ffd700">${a}%</strong></div>`;
+                    });
+                    revealHTML += '</div>';
+                    document.body.insertAdjacentHTML('beforeend', revealHTML);
+                } catch (e) { }
+            }
+
+            /* Confetti — continuous, never stops */
+            function startConfetti() {
+                const canvas = document.getElementById('confetti-canvas'), ctx = canvas.getContext('2d');
+                canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+                const COLORS = ['#ffd700', '#ff6eb4', '#00f5ff', '#00ff88', '#a78bfa', '#ffffff', '#ff6347'];
+                const pieces = Array.from({ length: 110 }, () => ({
+                    x: Math.random() * canvas.width, y: Math.random() * canvas.height - canvas.height,
+                    w: 5 + Math.random() * 9, h: 7 + Math.random() * 13,
+                    color: COLORS[Math.floor(Math.random() * COLORS.length)],
+                    speed: 1.2 + Math.random() * 2.8, spin: (Math.random() - .5) * .14,
+                    angle: Math.random() * Math.PI * 2, drift: (Math.random() - .5) * 1.2,
+                    opacity: .65 + Math.random() * .35,
+                }));
+                function draw() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    pieces.forEach(p => {
+                        ctx.save(); ctx.translate(p.x + p.w / 2, p.y + p.h / 2); ctx.rotate(p.angle);
+                        ctx.globalAlpha = p.opacity; ctx.fillStyle = p.color;
+                        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); ctx.restore();
+                        p.y += p.speed; p.x += p.drift; p.angle += p.spin;
+                        if (p.y > canvas.height + 20) { p.y = -20; p.x = Math.random() * canvas.width; p.speed = 1.2 + Math.random() * 2.8; }
+                    });
+                    requestAnimationFrame(draw);
+                }
+                draw();
+            }
+            window.addEventListener('resize', () => { const c = document.getElementById('confetti-canvas'); c.width = window.innerWidth; c.height = window.innerHeight; });
+        })();
+    </script>
+</body>
+
+</html>
