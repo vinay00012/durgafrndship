@@ -1643,7 +1643,7 @@
                 <span class="hi">okay real talk —</span><br>
                 this whole thing was just<br>
                 an excuse to say hey,<br>
-                glad we're friends 😄
+                glad you're my friend 😄
             </div>
         </div>
     </div>
@@ -1738,8 +1738,8 @@
             <div class="cert-divider-gold"></div>
             <p class="cert-body">
                 This certifies that <span id="cert-her">DURGA</span> has officially<br>
-                passed the <span class="pink">vibe check</span>, survived the<br>
-                chaos test, and earned a spot in<br>
+                passed the <span class="pink">friendship test</span>, survived the<br>
+                chaos level, and earned a permanent spot in<br>
                 <span id="cert-his">VINAY</span>'s <span>very exclusive friend list.</span>
             </p>
             <div class="cert-stats">
@@ -1763,7 +1763,7 @@
             <div class="cert-divider-gold"></div>
             <p class="cert-final">
                 Congrats. You're stuck<br>with <span id="cert-his2">VINAY</span> now.<br>
-                <span class="pink">Deal with it. 😄</span>
+                <span class="pink">No refunds. 😄</span>
             </p>
             <p class="cert-id">CERT-ID: FP-<span id="cert-id-val"></span> &nbsp;|&nbsp; STATUS: AWAITING CONFIRMATION
             </p>
@@ -2019,11 +2019,11 @@
 
             /* ===== FEATURE 3: INTERACTIVE QUIZ ===== */
             const QUESTIONS = [
-                { label: 'How <strong>chaotic</strong> are you?', type: 'slider', stat: 'Chaos Energy', color: '#ff6eb4', emoji: '⚡' },
-                { label: '<strong>Main character</strong> energy level?', type: 'slider', stat: 'Main Character Vibe', color: '#00f5ff', emoji: '✨' },
-                { label: 'How often do you laugh at <strong>dumb stuff</strong>?', type: 'slider', stat: 'Laugh Frequency', color: '#00ff88', emoji: '😂' },
-                { label: 'Would you trust <strong>' + SENDER + '</strong> with your phone?', type: 'choice', choices: ['Absolutely', 'Maybe...', 'Nope'], values: [95, 75, 55], stat: 'Trust Level', color: '#ffd700', emoji: '🔐' },
-                { label: 'Vibe check — <strong>are we vibing</strong>?', type: 'choice', choices: ['Always 💯', 'Usually', 'Sometimes'], values: [100, 85, 65], stat: 'Vibe Check', color: '#a78bfa', emoji: '💜' },
+                { label: 'How <strong>chaotic</strong> are you on a daily basis?', type: 'slider', stat: 'Chaos Energy', color: '#ff6eb4', emoji: '⚡' },
+                { label: '<strong>Drama</strong> level on a scale of 1 to 10?', type: 'slider', stat: 'Drama Level', color: '#00f5ff', emoji: '✨' },
+                { label: 'How often do you laugh at <strong>silly jokes</strong>?', type: 'slider', stat: 'Laugh Frequency', color: '#00ff88', emoji: '😂' },
+                { label: 'Would you trust <strong>' + SENDER + '</strong> with your phone unlocked?', type: 'choice', choices: ['100% yes', 'Hmm maybe...', 'Not a chance'], values: [95, 75, 55], stat: 'Trust Level', color: '#ffd700', emoji: '🔐' },
+                { label: 'Honest answer — <strong>how strong is our bond</strong>?', type: 'choice', choices: ['Pakka solid 💯', 'Pretty good', 'It\'s decent'], values: [100, 85, 65], stat: 'Bond Strength', color: '#a78bfa', emoji: '💜' },
             ];
             let quizAnswers = [];
             let currentQ = 0;
@@ -2171,17 +2171,17 @@
             };
 
             /* Decline button — starts IN card, escapes on proximity */
-            const TOASTS = ['Access Denied.', 'Command Not Recognized.', 'Error: Action Prohibited.', 'Nice try 😏', 'Nope.', 'Not today.', 'Button.exe has left the chat.', 'lol no.', 'Please stop 😂', 'Really? 😄'];
+            const TOASTS = ['Access Denied.', 'Command Not Recognized.', 'Error: Action Prohibited.', 'Nice try 😏', 'Avvadhu.', 'Not today.', 'Button.exe has left the chat.', 'lol no.', 'Please stop 😂', 'Seriously? 😄'];
             let toastT = null, noEscaped = false, escapeAttempts = 0, decisionDone = false;
 
             /* Progressive reaction messages based on attempt count */
             const REACTIONS = [
                 { at: 1, msg: 'The button doesn\'t seem to agree... 🤔' },
                 { at: 2, msg: 'It\'s running away from you 😂' },
-                { at: 3, msg: 'Just accept it already!' },
-                { at: 5, msg: 'You\'ve tried 5 times. Take the hint. 😏' },
+                { at: 3, msg: 'Enti, just accept cheyyi!' },
+                { at: 5, msg: 'You\'ve tried 5 times. Ardam chesuko. 😏' },
                 { at: 7, msg: 'Okay this is getting embarrassing...' },
-                { at: 10, msg: 'TEN attempts?! You\'re persistent 💀' },
+                { at: 10, msg: 'TEN attempts?! Enni sarlu try chestav 💀' },
                 { at: 15, msg: 'At this point, just press Authorize 😭' },
                 { at: 20, msg: 'Legend says the button is still running...🏃' },
             ];
@@ -2306,7 +2306,7 @@
                 try {
                     const decoded = atob(p.get('d'));
                     const answers = decoded.split('-').map(Number);
-                    const labels = ['Chaos Energy', 'Main Character Vibe', 'Laugh Frequency', 'Trust Level', 'Vibe Check'];
+                    const labels = ['Chaos Energy', 'Drama Level', 'Laugh Frequency', 'Trust Level', 'Bond Strength'];
                     let revealHTML = '<div style="position:fixed;bottom:10px;right:10px;z-index:9999;background:rgba(0,0,0,.9);border:1px solid rgba(0,245,255,.3);padding:12px 16px;border-radius:4px;font-size:10px;color:#00f5ff;font-family:monospace;max-width:200px;">';
                     revealHTML += '<div style="font-size:8px;letter-spacing:.2em;color:rgba(255,255,255,.3);margin-bottom:8px;">🔓 SECRET ANSWERS</div>';
                     answers.forEach((a, i) => {
